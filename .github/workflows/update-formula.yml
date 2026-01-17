@@ -39,26 +39,36 @@ jobs:
           VERSION="${TAG#v}"
           
           # Download the release artifacts for macOS and Linux (matches mcd-cn.rb naming).
-          declare -A URLS
-          declare -A SHAS
           for ARCH in darwin_amd64 darwin_arm64 linux_amd64 linux_arm64; do
             FILENAME="${FORMULA}_${VERSION}_${ARCH}.tar.gz"
             DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${TAG}/${FILENAME}"
             curl -L "${DOWNLOAD_URL}" -o "${FILENAME}"
             SHA256=$(shasum -a 256 "${FILENAME}" | awk '{print $1}')
-            URLS["${ARCH}"]="${DOWNLOAD_URL}"
-            SHAS["${ARCH}"]="${SHA256}"
+            case "${ARCH}" in
+              darwin_amd64)
+                URL_DARWIN_AMD64="${DOWNLOAD_URL}"
+                SHA_DARWIN_AMD64="${SHA256}"
+                ;;
+              darwin_arm64)
+                URL_DARWIN_ARM64="${DOWNLOAD_URL}"
+                SHA_DARWIN_ARM64="${SHA256}"
+                ;;
+              linux_amd64)
+                URL_LINUX_AMD64="${DOWNLOAD_URL}"
+                SHA_LINUX_AMD64="${SHA256}"
+                ;;
+              linux_arm64)
+                URL_LINUX_ARM64="${DOWNLOAD_URL}"
+                SHA_LINUX_ARM64="${SHA256}"
+                ;;
+            esac
           done
 
           export FORMULA VERSION
-          export URL_DARWIN_AMD64="${URLS[darwin_amd64]}"
-          export URL_DARWIN_ARM64="${URLS[darwin_arm64]}"
-          export URL_LINUX_AMD64="${URLS[linux_amd64]}"
-          export URL_LINUX_ARM64="${URLS[linux_arm64]}"
-          export SHA_DARWIN_AMD64="${SHAS[darwin_amd64]}"
-          export SHA_DARWIN_ARM64="${SHAS[darwin_arm64]}"
-          export SHA_LINUX_AMD64="${SHAS[linux_amd64]}"
-          export SHA_LINUX_ARM64="${SHAS[linux_arm64]}"
+          export URL_DARWIN_AMD64 SHA_DARWIN_AMD64
+          export URL_DARWIN_ARM64 SHA_DARWIN_ARM64
+          export URL_LINUX_AMD64 SHA_LINUX_AMD64
+          export URL_LINUX_ARM64 SHA_LINUX_ARM64
 
           ruby <<'RUBY'
           file = File.join("Formula", "#{ENV.fetch("FORMULA")}.rb")
