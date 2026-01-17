@@ -5,21 +5,21 @@
 class McdCn < Formula
   desc "CLI client for the McDonald's China MCP server."
   homepage "https://github.com/ryanchen01/mcd-cn"
-  version "0.1.2"
+  version "0.1.3"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/ryanchen01/mcd-cn/releases/download/v0.1.2/mcd-cn_0.1.2_darwin_amd64.tar.gz"
-      sha256 "fa7b46105cd5b663f36c6e5bfe07a490ceada1ae9c167691100a3bb9a4f30a8e"
+      url "https://github.com/ryanchen01/mcd-cn/releases/download/v0.1.3/mcd-cn_0.1.3_darwin_amd64.tar.gz"
+      sha256 "4252a2d4f4a1b191653a24dceebbcc5fd91d2c58a6e3a294cb0afcb8670da764"
 
       def install
         bin.install "mcd-cn"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/ryanchen01/mcd-cn/releases/download/v0.1.2/mcd-cn_0.1.2_darwin_arm64.tar.gz"
-      sha256 "5d4f0b79a55b9d4aaa5b388bb72f274ccba2cf507cbec0ccab74bfe1af106030"
+      url "https://github.com/ryanchen01/mcd-cn/releases/download/v0.1.3/mcd-cn_0.1.3_darwin_arm64.tar.gz"
+      sha256 "c3254889e10b934564cebab851f3e26df4436ebda292dda5fdfec8f7a685c1c2"
 
       def install
         bin.install "mcd-cn"
@@ -29,15 +29,15 @@ class McdCn < Formula
 
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/ryanchen01/mcd-cn/releases/download/v0.1.2/mcd-cn_0.1.2_linux_amd64.tar.gz"
-      sha256 "a5785c7682464c6d9e42504c424c7274082a5e0d5cf5c138f459bbaa1978ae8e"
+      url "https://github.com/ryanchen01/mcd-cn/releases/download/v0.1.3/mcd-cn_0.1.3_linux_amd64.tar.gz"
+      sha256 "7e9bfa4d424cfdd5a3180f2018ba9e53014092a59f9405894069b5a7e2aa720c"
       def install
         bin.install "mcd-cn"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/ryanchen01/mcd-cn/releases/download/v0.1.2/mcd-cn_0.1.2_linux_arm64.tar.gz"
-      sha256 "9fe8dfeacefa63b9f73cb15d149ebde95966fe56e4ef22be7539c0faccb7e478"
+      url "https://github.com/ryanchen01/mcd-cn/releases/download/v0.1.3/mcd-cn_0.1.3_linux_arm64.tar.gz"
+      sha256 "15228ce23cbdc90c3dc507c3a76463c2615aa5d47e8343fdd1f30cdfa98a94eb"
       def install
         bin.install "mcd-cn"
       end
