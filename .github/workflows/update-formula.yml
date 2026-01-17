@@ -32,22 +32,64 @@ jobs:
       
       - name: Update formula
         run: |
+          set -euo pipefail
           FORMULA="${{ github.event.inputs.formula }}"
           TAG="${{ github.event.inputs.tag }}"
           REPO="${{ github.event.inputs.repository }}"
           VERSION="${TAG#v}"
           
-          # Download the release artifact
-          DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${TAG}/${FORMULA}-macos-universal.tar.gz"
-          curl -L "${DOWNLOAD_URL}" -o "${FORMULA}.tar.gz"
-          
-          # Calculate SHA256
-          SHA256=$(shasum -a 256 "${FORMULA}.tar.gz" | awk '{print $1}')
-          
-          # Update the formula
-          sed -i '' "s/version \".*\"/version \"${VERSION}\"/" "Formula/${FORMULA}.rb"
-          sed -i '' "s/sha256 \".*\"/sha256 \"${SHA256}\"/" "Formula/${FORMULA}.rb"
-          sed -i '' "s|url \".*\"|url \"${DOWNLOAD_URL}\"|" "Formula/${FORMULA}.rb"
+          # Download the release artifacts for macOS and Linux (matches mcd-cn.rb naming).
+          declare -A URLS
+          declare -A SHAS
+          for ARCH in darwin_amd64 darwin_arm64 linux_amd64 linux_arm64; do
+            FILENAME="${FORMULA}_${VERSION}_${ARCH}.tar.gz"
+            DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${TAG}/${FILENAME}"
+            curl -L "${DOWNLOAD_URL}" -o "${FILENAME}"
+            SHA256=$(shasum -a 256 "${FILENAME}" | awk '{print $1}')
+            URLS["${ARCH}"]="${DOWNLOAD_URL}"
+            SHAS["${ARCH}"]="${SHA256}"
+          done
+
+          export FORMULA VERSION
+          export URL_DARWIN_AMD64="${URLS[darwin_amd64]}"
+          export URL_DARWIN_ARM64="${URLS[darwin_arm64]}"
+          export URL_LINUX_AMD64="${URLS[linux_amd64]}"
+          export URL_LINUX_ARM64="${URLS[linux_arm64]}"
+          export SHA_DARWIN_AMD64="${SHAS[darwin_amd64]}"
+          export SHA_DARWIN_ARM64="${SHAS[darwin_arm64]}"
+          export SHA_LINUX_AMD64="${SHAS[linux_amd64]}"
+          export SHA_LINUX_ARM64="${SHAS[linux_arm64]}"
+
+          ruby <<'RUBY'
+          file = File.join("Formula", "#{ENV.fetch("FORMULA")}.rb")
+          version = ENV.fetch("VERSION")
+          mapping = {
+            "darwin_amd64" => [ENV.fetch("URL_DARWIN_AMD64"), ENV.fetch("SHA_DARWIN_AMD64")],
+            "darwin_arm64" => [ENV.fetch("URL_DARWIN_ARM64"), ENV.fetch("SHA_DARWIN_ARM64")],
+            "linux_amd64" => [ENV.fetch("URL_LINUX_AMD64"), ENV.fetch("SHA_LINUX_AMD64")],
+            "linux_arm64" => [ENV.fetch("URL_LINUX_ARM64"), ENV.fetch("SHA_LINUX_ARM64")]
+          }
+
+          lines = File.readlines(file)
+          current_arch = nil
+          lines.map! do |line|
+            if line =~ /version ".*"/
+              line = line.sub(/version ".*"/, "version \"#{version}\"")
+            end
+
+            if line =~ /url ".*(darwin_amd64|darwin_arm64|linux_amd64|linux_arm64).*"/
+              arch = Regexp.last_match(1)
+              current_arch = arch
+              line = line.sub(/url ".*"/, "url \"#{mapping.fetch(arch).first}\"")
+            elsif current_arch && line =~ /sha256 ".*"/
+              line = line.sub(/sha256 ".*"/, "sha256 \"#{mapping.fetch(current_arch).last}\"")
+              current_arch = nil
+            end
+            line
+          end
+
+          File.write(file, lines.join)
+          RUBY
           
           # Commit and push
           git add "Formula/${FORMULA}.rb"
